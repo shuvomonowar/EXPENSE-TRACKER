@@ -13,6 +13,7 @@ const ShowRecords = () => {
   const [editingDetail, setEditingDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [updatedValues, setUpdatedValues] = useState(null);
 
   const handleToggleExpand = (index) => {
     setExpandedRecords((prevExpanded) => {
@@ -67,10 +68,11 @@ const ShowRecords = () => {
     }
   };
 
-  const handleEdit = (recordIndex, detail) => {
+  const handleEdit = (recordIndex, detail, issuedRecord) => {
     setEditingDetail({
       recordIndex: recordIndex,
       detailId: detail._id,
+      issuedOn: issuedRecord.issuedOn,
       title: detail.title,
       amount: detail.amount,
       category: detail.category,
@@ -96,17 +98,23 @@ const ShowRecords = () => {
     }
   };
 
-  const handleUpdate = async () => {
-    try {
-      // await axios.put(`http://localhost:3001/record/${record[editingDetail.recordIndex]._id}/${editingDetail.detailId}`, {
-      //   title: editingDetail.title,
-      //   amount: editingDetail.amount,
-      //   category: editingDetail.category,
-      //   notes: editingDetail.notes,
-      // });
+  const handleUpdate = async (e) => {
+    e.preventDefault();
 
+    try {
+      const response = await axios.put(`http://localhost:3001/record`, {
+        issuedOn: editingDetail.issuedOn,
+        details_index: editingDetail.recordIndex,
+        title: editingDetail.title,
+        amount: editingDetail.amount,
+        category: editingDetail.category,
+        notes: editingDetail.notes,
+      });
+
+      setUpdatedValues(response.data.updatedValues);
       fetchRecord();
-      setEditingDetail(null);
+      window.confirm("Expense record is updated successfully");
+      // setEditingDetail(null);
     } catch (error) {
       console.error("Error updating record:", error);
     }
@@ -297,7 +305,13 @@ const ShowRecords = () => {
                                 <div className="grid grid-cols-2 gap-3 py-2 px-1">
                                   <button
                                     className="bg-[#172554] hover:bg-blue-700 text-[#f9fafb] hover:text-white font-bold rounded py-2"
-                                    onClick={() => handleEdit(index, detail)}
+                                    onClick={() =>
+                                      handleEdit(
+                                        detailIndex,
+                                        detail,
+                                        issuedRecord
+                                      )
+                                    }
                                   >
                                     Edit
                                   </button>
@@ -322,11 +336,11 @@ const ShowRecords = () => {
             </ul>
           </div>
           {editingDetail && (
-            <div className="fixed top-0 left-0 w-full h-full flex px-[52rem] bg-gray-800 bg-opacity-50">
-              <div className="w-[25rem]">
+            <div className="fixed top-0 left-0 w-full h-full flex px-[50rem] bg-gray-800 bg-opacity-55">
+              <div className="w-[25rem] pr-5">
                 <form
-                  onSubmit={handleUpdate}
-                  className="bg-[#fefce8] w-[25rem] shadow-lg rounded px-8 pt-6 pb-8 mt-[10rem]"
+                  onSubmit={(e) => handleUpdate(e)}
+                  className="bg-[#fefce8] w-[25rem] shadow-lg border-slate-600 rounded px-8 pt-4 pb-8 mt-[5.5rem]"
                 >
                   <button
                     className="ml-[19rem] transition hover:rotate-90"
@@ -339,6 +353,17 @@ const ShowRecords = () => {
                     <h2>Edit Record</h2>
                   </div>
                   <br />
+                  <div className="mb-4">
+                    <h2 className="text-sm font-md text-red-800">
+                      Issued On:
+                      <span className="ml-2 text-gray-600">
+                        {formatDate(
+                          updatedValues?.issuedOn || editingDetail.issuedOn
+                        )}
+                      </span>
+                    </h2>
+                  </div>
+
                   <div className="mb-4">
                     <label
                       className="block text-gray-700 text-sm font-bold mb-2"

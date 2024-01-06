@@ -12,13 +12,13 @@ const Footer = () => {
         <div className="flex flex-row gap-2 py-5 pl-[6rem]">
           <a
             href="#"
-            className="bg-amber-50 p-2 rounded-3xl hover:bg-[#4c1d95] shadow shadow-zinc-200 hover:shadow-[#5b21b6] social-media"
+            className="bg-amber-50 p-2 rounded-3xl shadow shadow-zinc-200 transform hover:scale-110 transition ease-in-out social-media"
           >
             <img src={github} alt="GitHub" className="w-5 h-5 social-icon" />
           </a>
           <a
             href="#"
-            className="bg-amber-50 p-2 rounded-3xl hover:bg-[#4c1d95] shadow shadow-zinc-200 hover:shadow-[#5b21b6] social-media"
+            className="bg-amber-50 p-2 rounded-3xl shadow shadow-zinc-200 transform hover:scale-110 transition ease-in-out social-media"
           >
             <img
               src={linkedin}
@@ -28,13 +28,13 @@ const Footer = () => {
           </a>
           <a
             href="#"
-            className="bg-amber-50 p-2 rounded-3xl hover:bg-[#4c1d95] shadow shadow-zinc-200 hover:shadow-[#5b21b6] social-media"
+            className="bg-amber-50 p-2 rounded-3xl shadow shadow-zinc-200 transform hover:scale-110 transition ease-in-out social-media"
           >
             <img src={x} alt="X" className="w-5 h-5 social-icon" />
           </a>
           <a
             href="#"
-            className="bg-amber-50 p-2 rounded-3xl hover:bg-[#4c1d95] shadow shadow-zinc-200 hover:shadow-[#5b21b6] social-media"
+            className="bg-amber-50 p-2 rounded-3xl shadow shadow-zinc-200 transform hover:scale-110 transition ease-in-out social-media"
           >
             <img
               src={facebook}
@@ -44,7 +44,7 @@ const Footer = () => {
           </a>
           <a
             href="#"
-            className="bg-amber-50 p-2 rounded-3xl hover:bg-[#4c1d95] shadow shadow-zinc-200 hover:shadow-[#5b21b6] social-media"
+            className="bg-amber-50 p-2 rounded-3xl shadow shadow-zinc-200 transform hover:scale-110 transition ease-in-out social-media"
           >
             <img
               src={leetcode}
@@ -54,7 +54,7 @@ const Footer = () => {
           </a>
           <a
             href="#"
-            className="bg-amber-50 p-2 rounded-3xl hover:bg-[#4c1d95] shadow shadow-zinc-200 hover:shadow-[#5b21b6] social-media"
+            className="bg-amber-50 p-2 rounded-3xl shadow shadow-zinc-200 transform hover:scale-110 transition ease-in-out social-media"
           >
             <img
               src={codeforces}

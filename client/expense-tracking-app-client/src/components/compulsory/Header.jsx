@@ -3,10 +3,10 @@ import search from "../../assets/icon/search.png";
 const Header = () => {
   return (
     <>
-      <nav className="bg-[#d1d5db] py-5 shadow-sm shadow-slate-500 border">
+      <nav className="bg-[#d1d5db] py-2.5 shadow-sm shadow-slate-500 border fixed w-full top-0 z-10">
         <ul className="flex items-center justify-between px-[2rem]">
           <li>
-            <h1 className="text-slate-800 text-3xl font-thin">
+            <h1 className="text-slate-800 text-2xl font-thin">
               Expense Tracker
             </h1>
           </li>
@@ -15,10 +15,10 @@ const Header = () => {
               <input
                 type="text"
                 placeholder="Search Something..."
-                className="border border-slate-800 px-3 py-1 rounded focus:outline-none focus:border-slate-500"
+                className="border border-slate-800 px-3 py-0.5 rounded focus:outline-none focus:border-slate-500"
               />
               <button className="ml-2 pt-1">
-                <img src={search} alt="Search" className="w-6 h-6" />
+                <img src={search} alt="Search" className="w-5 h-5" />
               </button>
             </form>
           </li>

@@ -96,6 +96,36 @@ app.delete("/record/:recordId/:detailId", async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
+
+app.put("/record", async (req, res) => {
+    const { title, amount, category, issuedOn, notes, details_index } = req.body;
+
+    try {
+        const existingExpense = await ExpenseModel.findOne({ "issuedOn": issuedOn });
+
+        if (!existingExpense) {
+            return res.status(404).json({ message: "Expense not found" });
+        }
+
+        const detailToUpdate = existingExpense.details[details_index];
+
+        if (!detailToUpdate) {
+            return res.status(404).json({ message: "Expense detail not found" });
+        }
+
+        detailToUpdate.title = title;
+        detailToUpdate.amount = amount;
+        detailToUpdate.category = category;
+        detailToUpdate.notes = notes;
+
+        await existingExpense.save();
+
+        res.json({ message: "Expense updated successfully" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
   
 module.exports = app;
 
