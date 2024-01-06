@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
+import close from "../../assets/icon/close.png";
 import collapse from "../../assets/icon/collapse.png";
 import expand from "../../assets/icon/expand.png";
 
@@ -9,7 +10,9 @@ const ShowRecords = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [totalAmount, setTotalAmount] = useState([]);
+  const [editingDetail, setEditingDetail] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleToggleExpand = (index) => {
     setExpandedRecords((prevExpanded) => {
@@ -61,6 +64,51 @@ const ShowRecords = () => {
       }
     } catch (error) {
       console.error("Error deleting record:", error);
+    }
+  };
+
+  const handleEdit = (recordIndex, detail) => {
+    setEditingDetail({
+      recordIndex: recordIndex,
+      detailId: detail._id,
+      title: detail.title,
+      amount: detail.amount,
+      category: detail.category,
+      notes: detail.notes,
+    });
+
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    if (isEditing) {
+      const confirmCancel = window.confirm(
+        "Are you sure you want to cancel the edit? Any unsaved changes will be lost."
+      );
+
+      if (confirmCancel) {
+        setEditingDetail(null);
+        setIsEditing(false);
+      }
+    } else {
+      setEditingDetail(null);
+      setIsEditing(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    try {
+      // await axios.put(`http://localhost:3001/record/${record[editingDetail.recordIndex]._id}/${editingDetail.detailId}`, {
+      //   title: editingDetail.title,
+      //   amount: editingDetail.amount,
+      //   category: editingDetail.category,
+      //   notes: editingDetail.notes,
+      // });
+
+      fetchRecord();
+      setEditingDetail(null);
+    } catch (error) {
+      console.error("Error updating record:", error);
     }
   };
 
@@ -247,7 +295,10 @@ const ShowRecords = () => {
                               </td>
                               <td className="border border-gray-300 text-center">
                                 <div className="grid grid-cols-2 gap-3 py-2 px-1">
-                                  <button className="bg-[#172554] hover:bg-blue-700 text-[#f9fafb] hover:text-white font-bold rounded py-2">
+                                  <button
+                                    className="bg-[#172554] hover:bg-blue-700 text-[#f9fafb] hover:text-white font-bold rounded py-2"
+                                    onClick={() => handleEdit(index, detail)}
+                                  >
                                     Edit
                                   </button>
                                   <button
@@ -270,6 +321,128 @@ const ShowRecords = () => {
               ))}
             </ul>
           </div>
+          {editingDetail && (
+            <div className="fixed top-0 left-0 w-full h-full flex px-[52rem] bg-gray-800 bg-opacity-50">
+              <div className="w-[25rem]">
+                <form
+                  onSubmit={handleUpdate}
+                  className="bg-[#fefce8] w-[25rem] shadow-lg rounded px-8 pt-6 pb-8 mt-[10rem]"
+                >
+                  <button
+                    className="ml-[19rem] transition hover:rotate-90"
+                    onClick={handleCancel}
+                  >
+                    <img src={close} alt="Close" className="w-8 h-8" />
+                  </button>
+                  <br />
+                  <div className="text-center text-3xl font-thin">
+                    <h2>Edit Record</h2>
+                  </div>
+                  <br />
+                  <div className="mb-4">
+                    <label
+                      className="block text-gray-700 text-sm font-bold mb-2"
+                      htmlFor="title"
+                    >
+                      Title:
+                    </label>
+                    <input
+                      id="title"
+                      name="title"
+                      type="text"
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
+                      value={editingDetail.title}
+                      required
+                      onChange={(e) =>
+                        setEditingDetail({
+                          ...editingDetail,
+                          title: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label
+                      className="block text-gray-700 text-sm font-bold mb-2"
+                      htmlFor="amount"
+                    >
+                      Amount:
+                    </label>
+                    <input
+                      id="amount"
+                      name="amount"
+                      type="number"
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
+                      value={editingDetail.amount}
+                      required
+                      onChange={(e) =>
+                        setEditingDetail({
+                          ...editingDetail,
+                          amount: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label
+                      className="block text-gray-700 text-sm font-bold mb-2"
+                      htmlFor="category"
+                    >
+                      Category:
+                    </label>
+                    <select
+                      id="category"
+                      name="category"
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
+                      value={editingDetail.category}
+                      required
+                      onChange={(e) =>
+                        setEditingDetail({
+                          ...editingDetail,
+                          category: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="groceries">Groceries</option>
+                      <option value="utilities">Utilities</option>
+                      <option value="entertainment">Entertainment</option>
+                      <option value="transportation">Transportation</option>
+                    </select>
+                  </div>
+                  <div className="mb-6">
+                    <label
+                      className="block text-gray-700 text-sm font-bold mb-2"
+                      htmlFor="notes"
+                    >
+                      Notes:
+                    </label>
+                    <textarea
+                      id="notes"
+                      name="notes"
+                      rows="4"
+                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
+                      value={editingDetail.notes}
+                      required
+                      onChange={(e) =>
+                        setEditingDetail({
+                          ...editingDetail,
+                          notes: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <button
+                      className="bg-[#334155] hover:bg-[#1f2937] text-white px-4 py-2 rounded mr-2"
+                      type="submit"
+                    >
+                      Update
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
           <div className="flex items-center justify-between border border-slate-300 shadow-sm p-4 rounded">
             <h1 className="text-lg">
               Total expenses{" "}
