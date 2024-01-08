@@ -1,13 +1,12 @@
-import AddItem from "./AddRecord";
+import AddRecord from "./AddRecord";
 
 const Feature = () => {
   return (
     <>
       <div className="pt-8 bg-[#d1d5db]">
-        <AddItem />
+        <AddRecord />
         <br />
         <br />
-        
       </div>
     </>
   );

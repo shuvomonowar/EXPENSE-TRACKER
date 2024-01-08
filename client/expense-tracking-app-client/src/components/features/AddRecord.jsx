@@ -2,7 +2,7 @@ import axios from "axios";
 import { useState } from "react";
 import ShowRecords from "./ShowRecords";
 
-const AddItem = () => {
+const AddRecord = () => {
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
@@ -159,4 +159,4 @@ const AddItem = () => {
   );
 };
 
-export default AddItem;
+export default AddRecord;

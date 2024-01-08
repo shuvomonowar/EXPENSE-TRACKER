@@ -1,5 +1,7 @@
 import axios from "axios";
+import "chart.js/auto";
 import { useEffect, useState } from "react";
+import { Doughnut } from "react-chartjs-2";
 import close from "../../assets/icon/close.png";
 import collapse from "../../assets/icon/collapse.png";
 import expand from "../../assets/icon/expand.png";
@@ -14,6 +16,7 @@ const ShowRecords = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [updatedValues, setUpdatedValues] = useState(null);
+  const [pieChartData, setPieChartData] = useState(null);
 
   const handleToggleExpand = (index) => {
     setExpandedRecords((prevExpanded) => {
@@ -133,6 +136,28 @@ const ShowRecords = () => {
         setTotalAmount(calculatedTotalAmount);
 
         setExpandedRecords(new Array(response.data.length).fill(false));
+
+        const categoryTotal = response.data.reduce((acc, issuedRecord) => {
+          issuedRecord.details.forEach((detail) => {
+            acc[detail.category] = (acc[detail.category] || 0) + detail.amount;
+          });
+          return acc;
+        }, {});
+
+        setPieChartData({
+          labels: Object.keys(categoryTotal),
+          datasets: [
+            {
+              data: Object.values(categoryTotal),
+              backgroundColor: [
+                "rgba(255, 99, 132, 0.7)",
+                "rgba(54, 162, 235, 0.7)",
+                "rgba(255, 205, 86, 0.7)",
+                "rgba(75, 192, 192, 0.7)",
+              ],
+            },
+          ],
+        });
         setLoading(false);
       })
       .catch((error) => {
@@ -175,10 +200,55 @@ const ShowRecords = () => {
         setTotalAmount(calculatedTotalAmount);
 
         setExpandedRecords(new Array(response.data.length).fill(false));
+
+        const categoryTotal = response.data.reduce((acc, issuedRecord) => {
+          issuedRecord.details.forEach((detail) => {
+            acc[detail.category] = (acc[detail.category] || 0) + detail.amount;
+          });
+          return acc;
+        }, {});
+
+        setPieChartData({
+          labels: Object.keys(categoryTotal),
+          datasets: [
+            {
+              data: Object.values(categoryTotal),
+              backgroundColor: [
+                "rgba(255, 99, 132, 0.7)",
+                "rgba(54, 162, 235, 0.7)",
+                "rgba(255, 205, 86, 0.7)",
+                "rgba(75, 192, 192, 0.7)",
+              ],
+            },
+          ],
+        });
       })
       .catch((error) => {
         console.log("Error fetching record:", error);
       });
+  };
+
+  const doughnutLabel = {
+    id: "doughnutLabel",
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+
+      ctx.save();
+      ctx.font = "25px sans-serif";
+      ctx.fillStyle = "black";
+      ctx.textAlign = "center";
+
+      const textLines = ["Spent", "Per Category"];
+      const lineHeight = 35;
+      const startY =
+        chart.getDatasetMeta(0).data[0].y -
+        ((textLines.length - 1) * lineHeight) / 2;
+
+      textLines.forEach((line, index) => {
+        const yCoordinate = startY + index * lineHeight;
+        ctx.fillText(line, chart.getDatasetMeta(0).data[0].x, yCoordinate);
+      });
+    },
   };
 
   return (
@@ -188,7 +258,7 @@ const ShowRecords = () => {
           <p className="text-2xl font-thin">Loading...</p>
         </div>
       ) : (
-        <div className="p-9 bg-[#fefce8] my-[4rem] shadow-lg rounded-md">
+        <div className="p-9 bg-[#fefce8] my-[4rem] shadow-lg rounded-md pb-[9rem]">
           <div className="text-center text-3xl pt-5 font-thin">
             <h1>Expenditure Report</h1>
           </div>
@@ -335,139 +405,141 @@ const ShowRecords = () => {
               ))}
             </ul>
           </div>
-          {editingDetail && (
-            <div className="fixed top-0 left-0 w-full h-full flex px-[50rem] bg-gray-800 bg-opacity-55">
-              <div className="w-[25rem] pr-5">
-                <form
-                  onSubmit={(e) => handleUpdate(e)}
-                  className="bg-[#fefce8] w-[25rem] shadow-lg border-slate-600 rounded px-8 pt-4 pb-8 mt-[5.5rem]"
-                >
-                  <button
-                    className="ml-[19rem] transition hover:rotate-90"
-                    onClick={handleCancel}
+          <div>
+            {editingDetail && (
+              <div className="fixed top-0 left-0 w-full h-full flex px-[50rem] bg-gray-800 bg-opacity-55">
+                <div className="w-[25rem] pr-5">
+                  <form
+                    onSubmit={(e) => handleUpdate(e)}
+                    className="bg-[#fefce8] w-[25rem] shadow-lg border-slate-600 rounded px-8 pt-4 pb-8 mt-[5.5rem]"
                   >
-                    <img src={close} alt="Close" className="w-8 h-8" />
-                  </button>
-                  <br />
-                  <div className="text-center text-3xl font-thin">
-                    <h2>Edit Record</h2>
-                  </div>
-                  <br />
-                  <div className="mb-4">
-                    <h2 className="text-sm font-md text-red-800">
-                      Issued On:
-                      <span className="ml-2 text-gray-600">
-                        {formatDate(
-                          updatedValues?.issuedOn || editingDetail.issuedOn
-                        )}
-                      </span>
-                    </h2>
-                  </div>
-
-                  <div className="mb-4">
-                    <label
-                      className="block text-gray-700 text-sm font-bold mb-2"
-                      htmlFor="title"
-                    >
-                      Title:
-                    </label>
-                    <input
-                      id="title"
-                      name="title"
-                      type="text"
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
-                      value={editingDetail.title}
-                      required
-                      onChange={(e) =>
-                        setEditingDetail({
-                          ...editingDetail,
-                          title: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label
-                      className="block text-gray-700 text-sm font-bold mb-2"
-                      htmlFor="amount"
-                    >
-                      Amount:
-                    </label>
-                    <input
-                      id="amount"
-                      name="amount"
-                      type="number"
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
-                      value={editingDetail.amount}
-                      required
-                      onChange={(e) =>
-                        setEditingDetail({
-                          ...editingDetail,
-                          amount: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label
-                      className="block text-gray-700 text-sm font-bold mb-2"
-                      htmlFor="category"
-                    >
-                      Category:
-                    </label>
-                    <select
-                      id="category"
-                      name="category"
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
-                      value={editingDetail.category}
-                      required
-                      onChange={(e) =>
-                        setEditingDetail({
-                          ...editingDetail,
-                          category: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="groceries">Groceries</option>
-                      <option value="utilities">Utilities</option>
-                      <option value="entertainment">Entertainment</option>
-                      <option value="transportation">Transportation</option>
-                    </select>
-                  </div>
-                  <div className="mb-6">
-                    <label
-                      className="block text-gray-700 text-sm font-bold mb-2"
-                      htmlFor="notes"
-                    >
-                      Notes:
-                    </label>
-                    <textarea
-                      id="notes"
-                      name="notes"
-                      rows="4"
-                      className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
-                      value={editingDetail.notes}
-                      required
-                      onChange={(e) =>
-                        setEditingDetail({
-                          ...editingDetail,
-                          notes: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
                     <button
-                      className="bg-[#334155] hover:bg-[#1f2937] text-white px-4 py-2 rounded mr-2"
-                      type="submit"
+                      className="ml-[19rem] transition hover:rotate-90"
+                      onClick={handleCancel}
                     >
-                      Update
+                      <img src={close} alt="Close" className="w-8 h-8" />
                     </button>
-                  </div>
-                </form>
+                    <br />
+                    <div className="text-center text-3xl font-thin">
+                      <h2>Edit Record</h2>
+                    </div>
+                    <br />
+                    <div className="mb-4">
+                      <h2 className="text-sm font-md text-red-800">
+                        Issued On:
+                        <span className="ml-2 text-gray-600">
+                          {formatDate(
+                            updatedValues?.issuedOn || editingDetail.issuedOn
+                          )}
+                        </span>
+                      </h2>
+                    </div>
+
+                    <div className="mb-4">
+                      <label
+                        className="block text-gray-700 text-sm font-bold mb-2"
+                        htmlFor="title"
+                      >
+                        Title:
+                      </label>
+                      <input
+                        id="title"
+                        name="title"
+                        type="text"
+                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
+                        value={editingDetail.title}
+                        required
+                        onChange={(e) =>
+                          setEditingDetail({
+                            ...editingDetail,
+                            title: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label
+                        className="block text-gray-700 text-sm font-bold mb-2"
+                        htmlFor="amount"
+                      >
+                        Amount:
+                      </label>
+                      <input
+                        id="amount"
+                        name="amount"
+                        type="number"
+                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
+                        value={editingDetail.amount}
+                        required
+                        onChange={(e) =>
+                          setEditingDetail({
+                            ...editingDetail,
+                            amount: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label
+                        className="block text-gray-700 text-sm font-bold mb-2"
+                        htmlFor="category"
+                      >
+                        Category:
+                      </label>
+                      <select
+                        id="category"
+                        name="category"
+                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
+                        value={editingDetail.category}
+                        required
+                        onChange={(e) =>
+                          setEditingDetail({
+                            ...editingDetail,
+                            category: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="groceries">Groceries</option>
+                        <option value="utilities">Utilities</option>
+                        <option value="entertainment">Entertainment</option>
+                        <option value="transportation">Transportation</option>
+                      </select>
+                    </div>
+                    <div className="mb-6">
+                      <label
+                        className="block text-gray-700 text-sm font-bold mb-2"
+                        htmlFor="notes"
+                      >
+                        Notes:
+                      </label>
+                      <textarea
+                        id="notes"
+                        name="notes"
+                        rows="4"
+                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
+                        value={editingDetail.notes}
+                        required
+                        onChange={(e) =>
+                          setEditingDetail({
+                            ...editingDetail,
+                            notes: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <button
+                        className="bg-[#334155] hover:bg-[#1f2937] text-white px-4 py-2 rounded mr-2"
+                        type="submit"
+                      >
+                        Update
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
           <div className="flex items-center justify-between border border-slate-300 shadow-sm p-4 rounded">
             <h1 className="text-lg">
               Total expenses{" "}
@@ -475,6 +547,19 @@ const ShowRecords = () => {
                 {totalAmountCalculate()} {" Tk"}
               </span>
             </h1>
+          </div>
+          <div>
+            {pieChartData && (
+              <div className="mt-8">
+                <h2 className="text-2xl mb-4 font-light">
+                  Category-wise Expenses Chart:
+                </h2>
+                <br />
+                <div className="w-[30rem] h-[30rem] ml-[13rem]">
+                  <Doughnut data={pieChartData} plugins={[doughnutLabel]} />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
