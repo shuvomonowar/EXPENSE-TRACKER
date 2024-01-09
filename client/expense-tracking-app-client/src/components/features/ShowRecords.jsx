@@ -61,6 +61,29 @@ const ShowRecords = () => {
             return recordItem;
           });
 
+          const categoryTotal = updatedRecords.reduce((acc, issuedRecord) => {
+            issuedRecord.details.forEach((detail) => {
+              acc[detail.category] =
+                (acc[detail.category] || 0) + detail.amount;
+            });
+            return acc;
+          }, {});
+
+          setPieChartData({
+            labels: Object.keys(categoryTotal),
+            datasets: [
+              {
+                data: Object.values(categoryTotal),
+                backgroundColor: [
+                  "rgba(255, 99, 132, 0.7)",
+                  "rgba(54, 162, 235, 0.7)",
+                  "rgba(255, 205, 86, 0.7)",
+                  "rgba(75, 192, 192, 0.7)",
+                ],
+              },
+            ],
+          });
+
           return updatedRecords.filter(
             (recordItem) => recordItem.details.length > 0
           );
