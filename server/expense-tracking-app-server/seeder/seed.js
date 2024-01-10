@@ -13,32 +13,38 @@ db.once("open", async () => {
 
     const categories = ["groceries", "utilities", "transportation", "entertainment"];
 
-    const dummyData = Array.from({ length: 100 }, () => ({
-        issuedOn: chance.date({ year: 2022 }),
-        details: {
+    // Create a function for inserting or updating expenses
+    const insertOrUpdateExpense = async (issuedOn, details) => {
+        const existingExpense = await ExpenseModel.findOne({ "issuedOn": issuedOn });
+
+        if (existingExpense) {
+            existingExpense.details.push(details);
+            return existingExpense.save();
+        } else {
+            return ExpenseModel.create({ issuedOn, details });
+        }
+    };
+
+    const dummyData = Array.from({ length: 100 }, () => {
+        const issuedOn = chance.date({ year: 2022 });
+        const details = {
             title: chance.sentence(),
             amount: chance.integer({ min: 1, max: 1000 }),
             category: chance.pickone(categories),
             notes: chance.sentence(),
-        },
-    }));
+        };
 
-    (async () => {
-        for (const data of dummyData) {
-            const existingExpense = await ExpenseModel.findOne({ "issuedOn": data.issuedOn });
+        // Use the function to insert or update expenses
+        return insertOrUpdateExpense(issuedOn, details);
+    });
 
-            if (existingExpense) {
-                existingExpense.details.push(data.details);
-                await existingExpense.save();
-            } else {
-                await ExpenseModel.create(data);
-            }
-        }
-
+    // Wait for all promises to resolve
+    try {
+        await Promise.all(dummyData);
         console.log("Dummy data inserted successfully");
         db.close();
-    })().catch((error) => {
+    } catch (error) {
         console.error("Error inserting dummy data:", error);
         db.close();
-    });
+    }
 });

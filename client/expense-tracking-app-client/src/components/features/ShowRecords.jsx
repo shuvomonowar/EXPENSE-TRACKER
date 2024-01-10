@@ -28,7 +28,7 @@ const ShowRecords = () => {
   };
 
   const totalAmountCalculate = () => {
-    return totalAmount.reduce((sum, amount) => sum + amount, 0);
+    return totalAmount.reduce((sum, item) => sum + item.amount, 0);
   };
 
   const handleDelete = async (recordIndex, detailId) => {
@@ -61,9 +61,16 @@ const ShowRecords = () => {
             return recordItem;
           });
 
-          const calculatedTotalAmount = updatedRecords.map((issuedRecord) =>
-            issuedRecord.details.reduce((acc, detail) => acc + detail.amount, 0)
-          );
+          const calculatedTotalAmount = updatedRecords.map((issuedRecord) => {
+            const date = issuedRecord.date;
+            return {
+              date: date,
+              amount: issuedRecord.details.reduce(
+                (acc, detail) => acc + detail.amount,
+                0
+              ),
+            };
+          });
 
           setTotalAmount(calculatedTotalAmount);
 
@@ -163,9 +170,16 @@ const ShowRecords = () => {
       .then((response) => {
         setRecord(response.data);
 
-        const calculatedTotalAmount = response.data.map((issuedRecord) =>
-          issuedRecord.details.reduce((acc, detail) => acc + detail.amount, 0)
-        );
+        const calculatedTotalAmount = response.data.map((issuedRecord) => {
+          const date = issuedRecord.date; // Assuming 'date' is a property of each record
+          return {
+            date: date,
+            amount: issuedRecord.details.reduce(
+              (acc, detail) => acc + detail.amount,
+              0
+            ),
+          };
+        });
 
         setTotalAmount(calculatedTotalAmount);
 
@@ -193,6 +207,8 @@ const ShowRecords = () => {
           ],
         });
 
+        let vogus = 30; // This is for test purposing
+
         const forecastLabels = [];
         const forecastValues = [];
 
@@ -207,24 +223,34 @@ const ShowRecords = () => {
           const formattedDate = nextDate.toISOString().split("T")[0];
           forecastLabels.push(formattedDate);
 
-          // Calculate the forecasted expenses
-          const totalExpensesForDate = totalAmount.reduce(
-            (acc, amount, index) => {
-              const issuedRecord = response.data[index];
-              if (issuedRecord) {
-                const recordDate = new Date(issuedRecord.issuedOn)
-                  .toISOString()
-                  .split("T")[0];
-                if (recordDate === formattedDate) {
-                  acc += amount;
-                }
-              }
-              return acc;
-            },
-            0
+          const matchingExpenses = totalAmount.filter(
+            (item) =>
+              new Date(item.date) >= nextDate &&
+              new Date(item.date) < new Date(formattedDate)
           );
 
-          forecastValues.push(totalExpensesForDate);
+          // Calculate the forecasted expenses
+          const calculateForecastBasedOnPastData = (formattedDate) => {
+            const pastExpenses = totalAmount.filter(
+              (item) => item.date < formattedDate
+            );
+
+            vogus *= 2;
+
+            const averageExpense =
+              pastExpenses.length > 0
+                ? pastExpenses.reduce((acc, item) => acc + item.amount, 0) /
+                  pastExpenses.length
+                : vogus;
+            return averageExpense;
+          };
+
+          const forecastedExpenses =
+            matchingExpenses.length > 0
+              ? matchingExpenses.reduce((acc, item) => acc + item.amount, 0)
+              : calculateForecastBasedOnPastData(formattedDate);
+
+          forecastValues.push(forecastedExpenses);
         }
 
         setBarChartData({
@@ -277,9 +303,16 @@ const ShowRecords = () => {
         }
         setRecord(response.data);
 
-        const calculatedTotalAmount = response.data.map((issuedRecord) =>
-          issuedRecord.details.reduce((acc, detail) => acc + detail.amount, 0)
-        );
+        const calculatedTotalAmount = response.data.map((issuedRecord) => {
+          const date = issuedRecord.date; // Assuming 'date' is a property of each record
+          return {
+            date: date,
+            amount: issuedRecord.details.reduce(
+              (acc, detail) => acc + detail.amount,
+              0
+            ),
+          };
+        });
 
         setTotalAmount(calculatedTotalAmount);
 
@@ -400,7 +433,7 @@ const ShowRecords = () => {
                         {formatDate(issuedRecord.issuedOn)}{" "}
                       </span>
                       <span className="text-base ml-[32rem] font-bold text-green-800">
-                        {totalAmount[index] + " Tk"}
+                        {totalAmount[index].amount + " Tk"}
                       </span>
                     </h1>
                     <button
