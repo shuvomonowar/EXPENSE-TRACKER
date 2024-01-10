@@ -1,7 +1,7 @@
 import axios from "axios";
 import "chart.js/auto";
 import { useEffect, useState } from "react";
-import { Doughnut } from "react-chartjs-2";
+import { Bar, Doughnut } from "react-chartjs-2";
 import close from "../../assets/icon/close.png";
 import collapse from "../../assets/icon/collapse.png";
 import expand from "../../assets/icon/expand.png";
@@ -17,6 +17,7 @@ const ShowRecords = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [updatedValues, setUpdatedValues] = useState(null);
   const [pieChartData, setPieChartData] = useState(null);
+  const [barChartData, setBarChartData] = useState(null);
 
   const handleToggleExpand = (index) => {
     setExpandedRecords((prevExpanded) => {
@@ -43,23 +44,30 @@ const ShowRecords = () => {
               const updatedDetails = recordItem.details.filter(
                 (detail) => detail._id !== detailId
               );
-              const updatedRecordItem = {
-                ...recordItem,
-                details: updatedDetails,
-              };
-              const updatedTotalAmount = updatedRecordItem.details.reduce(
-                (acc, detail) => acc + detail.amount,
-                0
-              );
-              setTotalAmount((prevTotalAmount) => {
-                const newTotalAmount = [...prevTotalAmount];
-                newTotalAmount[index] = updatedTotalAmount;
-                return newTotalAmount;
-              });
-              return updatedRecordItem;
+
+              if (
+                updatedDetails.length === 0 ||
+                !updatedDetails.some((detail) => detail._id)
+              ) {
+                prevRecords.splice(index, 1);
+                return undefined;
+              } else {
+                return {
+                  ...recordItem,
+                  details: updatedDetails,
+                };
+              }
             }
             return recordItem;
           });
+
+          const calculatedTotalAmount = updatedRecords.map((issuedRecord) =>
+            issuedRecord.details.reduce((acc, detail) => acc + detail.amount, 0)
+          );
+
+          setTotalAmount(calculatedTotalAmount);
+
+          setExpandedRecords(new Array(updatedRecords.length).fill(false));
 
           const categoryTotal = updatedRecords.reduce((acc, issuedRecord) => {
             issuedRecord.details.forEach((detail) => {
@@ -69,19 +77,22 @@ const ShowRecords = () => {
             return acc;
           }, {});
 
-          setPieChartData({
-            labels: Object.keys(categoryTotal),
-            datasets: [
-              {
-                data: Object.values(categoryTotal),
-                backgroundColor: [
-                  "rgba(255, 99, 132, 0.7)",
-                  "rgba(54, 162, 235, 0.7)",
-                  "rgba(255, 205, 86, 0.7)",
-                  "rgba(75, 192, 192, 0.7)",
-                ],
-              },
-            ],
+          setPieChartData((prevPieChartData) => {
+            return {
+              ...prevPieChartData,
+              labels: Object.keys(categoryTotal),
+              datasets: [
+                {
+                  data: Object.values(categoryTotal),
+                  backgroundColor: [
+                    "rgba(255, 99, 132, 0.7)",
+                    "rgba(54, 162, 235, 0.7)",
+                    "rgba(255, 205, 86, 0.7)",
+                    "rgba(75, 192, 192, 0.7)",
+                  ],
+                },
+              ],
+            };
           });
 
           return updatedRecords.filter(
@@ -181,6 +192,56 @@ const ShowRecords = () => {
             },
           ],
         });
+
+        const forecastLabels = [];
+        const forecastValues = [];
+
+        const lastRecordDate =
+          response.data.length > 0
+            ? new Date(response.data[response.data.length - 1].issuedOn)
+            : new Date();
+
+        for (let i = 1; i <= 7; i++) {
+          const nextDate = new Date(lastRecordDate);
+          nextDate.setDate(lastRecordDate.getDate() + i);
+          const formattedDate = nextDate.toISOString().split("T")[0];
+          forecastLabels.push(formattedDate);
+
+          // Calculate the forecasted expenses
+          const totalExpensesForDate = totalAmount.reduce(
+            (acc, amount, index) => {
+              const issuedRecord = response.data[index];
+              if (issuedRecord) {
+                const recordDate = new Date(issuedRecord.issuedOn)
+                  .toISOString()
+                  .split("T")[0];
+                if (recordDate === formattedDate) {
+                  acc += amount;
+                }
+              }
+              return acc;
+            },
+            0
+          );
+
+          forecastValues.push(totalExpensesForDate);
+        }
+
+        setBarChartData({
+          labels: forecastLabels,
+          datasets: [
+            {
+              label: "Forecasted Expenses",
+              backgroundColor: "rgba(75, 192, 192, 0.7)",
+              borderColor: "rgba(75, 192, 192, 1)",
+              borderWidth: 1,
+              hoverBackgroundColor: "rgba(75, 192, 192, 0.9)",
+              hoverBorderColor: "rgba(75, 192, 192, 1)",
+              data: forecastValues,
+            },
+          ],
+        });
+
         setLoading(false);
       })
       .catch((error) => {
@@ -580,6 +641,19 @@ const ShowRecords = () => {
                 <br />
                 <div className="w-[30rem] h-[30rem] ml-[13rem]">
                   <Doughnut data={pieChartData} plugins={[doughnutLabel]} />
+                </div>
+              </div>
+            )}
+          </div>
+          <div>
+            {barChartData && (
+              <div className="mt-8">
+                <h2 className="text-2xl mb-4 font-light">
+                  Forecasted Expenses for the Next 7 Days:
+                </h2>
+                <br />
+                <div className="w-[30rem] h-[30rem] ml-[13rem]">
+                  <Bar data={barChartData} />
                 </div>
               </div>
             )}
