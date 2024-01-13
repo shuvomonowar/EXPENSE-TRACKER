@@ -5,9 +5,15 @@ const ExpenseModel = require("./models/Expense")
 
 const app = express()
 app.use(express.json())
-app.use(cors())
+app.use(cors(
+    {
+        origin: ["https://deploy-mern-1wha.vercel.app"],
+        methods: ["POST", "GET"],
+        credentials: true
+    }
+))
 
-mongoose.connect("mongodb://localhost:27017/expense-tracker")
+mongoose.connect("mongodb+srv://shuvomonowar:admin@cluster0.4cjvgtq.mongodb.net/expense-tracker?retryWrites=true&w=majority")
 
 app.post("/record", async (req, res) => {
     const { title, amount, category, issuedOn, notes } = req.body;
