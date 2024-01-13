@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Chance = require("chance");
 
-mongoose.connect("mongodb://localhost:27017/expense-tracker", { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect("mongodb+srv://shuvomonowar:admin@cluster0.4cjvgtq.mongodb.net/expense-tracker?retryWrites=true&w=majority", { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
 
 db.on("error", console.error.bind(console, "MongoDB connection error:"));

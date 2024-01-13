@@ -1,10 +1,11 @@
 import axios from "axios";
 import "chart.js/auto";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Bar, Doughnut } from "react-chartjs-2";
 import close from "../../assets/icon/close.png";
 import collapse from "../../assets/icon/collapse.png";
 import expand from "../../assets/icon/expand.png";
+import { DarkModeContext } from "../features/DarkModeContext";
 
 const ShowRecords = () => {
   const [record, setRecord] = useState([]);
@@ -18,6 +19,7 @@ const ShowRecords = () => {
   const [updatedValues, setUpdatedValues] = useState(null);
   const [pieChartData, setPieChartData] = useState(null);
   const [barChartData, setBarChartData] = useState(null);
+  const { darkMode } = useContext(DarkModeContext);
 
   const handleToggleExpand = (index) => {
     setExpandedRecords((prevExpanded) => {
@@ -62,7 +64,7 @@ const ShowRecords = () => {
           });
 
           const calculatedTotalAmount = updatedRecords.map((issuedRecord) => {
-            const date = issuedRecord.date;
+            const date = issuedRecord.issuedOn;
             return {
               date: date,
               amount: issuedRecord.details.reduce(
@@ -100,6 +102,59 @@ const ShowRecords = () => {
                 },
               ],
             };
+          });
+
+          const forecastLabels = [];
+          const forecastValues = [];
+
+          const lastRecordDate =
+            calculatedTotalAmount.length > 0
+              ? new Date(
+                  calculatedTotalAmount[calculatedTotalAmount.length - 1].date
+                )
+              : new Date();
+
+          const tempTotalAmount = calculatedTotalAmount.map((item) => {
+            return item.amount;
+          });
+
+          let prevFindTotalAmount = 0;
+          for (let i = 0; i < tempTotalAmount.length - 1; i++) {
+            prevFindTotalAmount += tempTotalAmount[i];
+          }
+
+          let initialCurrentAmount = 0;
+          let totalLength = tempTotalAmount.length;
+
+          for (let i = 0; i < 7; i++) {
+            const nextDate = new Date(lastRecordDate);
+            nextDate.setDate(lastRecordDate.getDate() + i);
+            const formattedDate = nextDate.toISOString().split("T")[0];
+            forecastLabels.push(formattedDate);
+
+            const findTotalAmount = prevFindTotalAmount + initialCurrentAmount;
+
+            const findAverageTotal = Math.floor(findTotalAmount / totalLength);
+
+            forecastValues.push(findAverageTotal);
+
+            initialCurrentAmount = findAverageTotal;
+            totalLength++;
+          }
+
+          setBarChartData({
+            labels: forecastLabels,
+            datasets: [
+              {
+                label: "Forecasted Expenses",
+                backgroundColor: "rgba(75, 192, 192, 0.7)",
+                borderColor: "rgba(75, 192, 192, 1)",
+                borderWidth: 1,
+                hoverBackgroundColor: "rgba(75, 192, 192, 0.9)",
+                hoverBorderColor: "rgba(75, 192, 192, 1)",
+                data: forecastValues,
+              },
+            ],
           });
 
           return updatedRecords.filter(
@@ -156,9 +211,32 @@ const ShowRecords = () => {
       });
 
       setUpdatedValues(response.data.updatedValues);
+
+      setRecord((prevRecord) => {
+        const updatedRecord = [...prevRecord];
+
+        for (let i = 0; i < updatedRecord.length; i++) {
+          if (updatedRecord[i].issuedOn === editingDetail.issuedOn) {
+            updatedRecord[i].details.map((detail) => {
+              if (detail._id === editingDetail.detailId) {
+                detail.title = editingDetail.title;
+                detail.amount = editingDetail.amount;
+                detail.category = editingDetail.category;
+                detail.notes = editingDetail.notes;
+                return;
+              }
+            });
+          }
+        }
+
+        return updatedRecord;
+      });
+
+      window.confirm(
+        "Expense record is updated successfully done. To show the updated value please press ok to reload the page"
+      );
+
       fetchRecord();
-      window.confirm("Expense record is updated successfully");
-      // setEditingDetail(null);
     } catch (error) {
       console.error("Error updating record:", error);
     }
@@ -171,7 +249,7 @@ const ShowRecords = () => {
         setRecord(response.data);
 
         const calculatedTotalAmount = response.data.map((issuedRecord) => {
-          const date = issuedRecord.date; // Assuming 'date' is a property of each record
+          const date = issuedRecord.issuedOn; // Assuming 'date' is a property of each record
           return {
             date: date,
             amount: issuedRecord.details.reduce(
@@ -207,15 +285,27 @@ const ShowRecords = () => {
           ],
         });
 
-        let vogus = 30; // This is for test purposing
-
         const forecastLabels = [];
         const forecastValues = [];
 
         const lastRecordDate =
-          response.data.length > 0
-            ? new Date(response.data[response.data.length - 1].issuedOn)
+          calculatedTotalAmount.length > 0
+            ? new Date(
+                calculatedTotalAmount[calculatedTotalAmount.length - 1].date
+              )
             : new Date();
+
+        const tempTotalAmount = calculatedTotalAmount.map((item) => {
+          return item.amount;
+        });
+
+        let prevFindTotalAmount = 0;
+        for (let i = 0; i < tempTotalAmount.length - 1; i++) {
+          prevFindTotalAmount += tempTotalAmount[i];
+        }
+
+        let initialCurrentAmount = 0;
+        let totalLength = tempTotalAmount.length;
 
         for (let i = 1; i <= 7; i++) {
           const nextDate = new Date(lastRecordDate);
@@ -223,34 +313,14 @@ const ShowRecords = () => {
           const formattedDate = nextDate.toISOString().split("T")[0];
           forecastLabels.push(formattedDate);
 
-          const matchingExpenses = totalAmount.filter(
-            (item) =>
-              new Date(item.date) >= nextDate &&
-              new Date(item.date) < new Date(formattedDate)
-          );
+          const findTotalAmount = prevFindTotalAmount + initialCurrentAmount;
 
-          // Calculate the forecasted expenses
-          const calculateForecastBasedOnPastData = (formattedDate) => {
-            const pastExpenses = totalAmount.filter(
-              (item) => item.date < formattedDate
-            );
+          const findAverageTotal = Math.floor(findTotalAmount / totalLength);
 
-            vogus *= 2;
+          forecastValues.push(findAverageTotal);
 
-            const averageExpense =
-              pastExpenses.length > 0
-                ? pastExpenses.reduce((acc, item) => acc + item.amount, 0) /
-                  pastExpenses.length
-                : vogus;
-            return averageExpense;
-          };
-
-          const forecastedExpenses =
-            matchingExpenses.length > 0
-              ? matchingExpenses.reduce((acc, item) => acc + item.amount, 0)
-              : calculateForecastBasedOnPastData(formattedDate);
-
-          forecastValues.push(forecastedExpenses);
+          initialCurrentAmount = findAverageTotal;
+          totalLength++;
         }
 
         setBarChartData({
@@ -304,7 +374,7 @@ const ShowRecords = () => {
         setRecord(response.data);
 
         const calculatedTotalAmount = response.data.map((issuedRecord) => {
-          const date = issuedRecord.date; // Assuming 'date' is a property of each record
+          const date = issuedRecord.issuedOn; // Assuming 'date' is a property of each record
           return {
             date: date,
             amount: issuedRecord.details.reduce(
@@ -339,6 +409,59 @@ const ShowRecords = () => {
             },
           ],
         });
+
+        const forecastLabels = [];
+        const forecastValues = [];
+
+        const lastRecordDate =
+          calculatedTotalAmount.length > 0
+            ? new Date(
+                calculatedTotalAmount[calculatedTotalAmount.length - 1].date
+              )
+            : new Date();
+
+        const tempTotalAmount = calculatedTotalAmount.map((item) => {
+          return item.amount;
+        });
+
+        let prevFindTotalAmount = 0;
+        for (let i = 0; i < tempTotalAmount.length - 1; i++) {
+          prevFindTotalAmount += tempTotalAmount[i];
+        }
+
+        let initialCurrentAmount = 0;
+        let totalLength = tempTotalAmount.length;
+
+        for (let i = 0; i < 7; i++) {
+          const nextDate = new Date(lastRecordDate);
+          nextDate.setDate(lastRecordDate.getDate() + i);
+          const formattedDate = nextDate.toISOString().split("T")[0];
+          forecastLabels.push(formattedDate);
+
+          const findTotalAmount = prevFindTotalAmount + initialCurrentAmount;
+
+          const findAverageTotal = Math.floor(findTotalAmount / totalLength);
+
+          forecastValues.push(findAverageTotal);
+
+          initialCurrentAmount = findAverageTotal;
+          totalLength++;
+        }
+
+        setBarChartData({
+          labels: forecastLabels,
+          datasets: [
+            {
+              label: "Forecasted Expenses",
+              backgroundColor: "rgba(75, 192, 192, 0.7)",
+              borderColor: "rgba(75, 192, 192, 1)",
+              borderWidth: 1,
+              hoverBackgroundColor: "rgba(75, 192, 192, 0.9)",
+              hoverBorderColor: "rgba(75, 192, 192, 1)",
+              data: forecastValues,
+            },
+          ],
+        });
       })
       .catch((error) => {
         console.log("Error fetching record:", error);
@@ -352,7 +475,7 @@ const ShowRecords = () => {
 
       ctx.save();
       ctx.font = "25px sans-serif";
-      ctx.fillStyle = "black";
+      ctx.fillStyle = "gray";
       ctx.textAlign = "center";
 
       const textLines = ["Spent", "Per Category"];
@@ -371,11 +494,19 @@ const ShowRecords = () => {
   return (
     <>
       {loading ? (
-        <div className="p-9 bg-[#fefce8] my-[4rem] shadow-lg rounded-md">
+        <div
+          className={`p-9 bg-[#fefce8] my-[4rem] shadow-lg rounded-md ${
+            darkMode ? "bg-gray-800 text-white" : "bg-[#fefce8] text-black"
+          }`}
+        >
           <p className="text-2xl font-thin">Loading...</p>
         </div>
       ) : (
-        <div className="p-9 bg-[#fefce8] my-[4rem] shadow-lg rounded-md pb-[9rem]">
+        <div
+          className={`p-9 bg-[#fefce8] my-[4rem] shadow-lg rounded-md ${
+            darkMode ? "bg-gray-800 text-white" : "bg-[#fefce8] text-black"
+          }`}
+        >
           <div className="text-center text-3xl pt-5 font-thin">
             <h1>Expenditure Report</h1>
           </div>
@@ -424,102 +555,116 @@ const ShowRecords = () => {
           </div>
           <div>
             <ul className="list-none">
-              {record.map((issuedRecord, index) => (
-                <li key={index} className="mb-4">
-                  <div className="flex items-center justify-between bg-gray-300 p-4 rounded">
-                    <h1 className="text-lg font-light">
-                      Total expenses of{" "}
-                      <span className="font-serif font-light">
-                        {formatDate(issuedRecord.issuedOn)}{" "}
-                      </span>
-                      <span className="text-base ml-[32rem] font-bold text-green-800">
-                        {totalAmount[index].amount + " Tk"}
-                      </span>
-                    </h1>
-                    <button
-                      className="text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                      onClick={() => handleToggleExpand(index)}
-                    >
-                      {expandedRecords[index] ? (
-                        <img
-                          src={collapse}
-                          alt="Collapse"
-                          className="h-5 w-5"
-                        />
-                      ) : (
-                        <img src={expand} alt="Expand" className="h-5 w-5" />
+              {record.length <= 0 ? (
+                <div>
+                  <p className="font-thin text-lg">Please wait...</p>
+                </div>
+              ) : (
+                <div>
+                  {record.map((issuedRecord, index) => (
+                    <li key={index} className="mb-4">
+                      <div className="flex items-center justify-between bg-gray-300 p-4 rounded">
+                        <h1 className="text-lg font-light text-black">
+                          Total expenses of{" "}
+                          <span className="font-serif font-light">
+                            {formatDate(totalAmount[index].date)}{" "}
+                          </span>
+                          <span className="text-base ml-[32rem] font-bold text-green-800">
+                            {totalAmount[index].amount + " Tk"}
+                          </span>
+                        </h1>
+                        <button
+                          className="text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                          onClick={() => handleToggleExpand(index)}
+                        >
+                          {expandedRecords[index] ? (
+                            <img
+                              src={collapse}
+                              alt="Collapse"
+                              className="h-5 w-5"
+                            />
+                          ) : (
+                            <img
+                              src={expand}
+                              alt="Expand"
+                              className="h-5 w-5"
+                            />
+                          )}
+                        </button>
+                      </div>
+                      {expandedRecords[index] && (
+                        <div className="mt-2">
+                          <table className="w-full border-collapse border border-gray-300">
+                            <thead className="bg-gray-200 text-center">
+                              <tr>
+                                <th className="border border-gray-300 p-2">
+                                  Title
+                                </th>
+                                <th className="border border-gray-300 p-2">
+                                  Amount
+                                </th>
+                                <th className="border border-gray-300 p-2">
+                                  Category
+                                </th>
+                                <th className="border border-gray-300 p-2">
+                                  Notes
+                                </th>
+                                <th className="border border-gray-300 p-2">
+                                  Action
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="text-center">
+                              {issuedRecord.details.map(
+                                (detail, detailIndex) => (
+                                  <tr key={detailIndex}>
+                                    <td className="border border-gray-300 p-2">
+                                      {detail.title}
+                                    </td>
+                                    <td className="border border-gray-300 p-2">
+                                      {detail.amount} Tk
+                                    </td>
+                                    <td className="border border-gray-300 p-2">
+                                      {detail.category}
+                                    </td>
+                                    <td className="border border-gray-300 p-2">
+                                      {detail.notes}
+                                    </td>
+                                    <td className="border border-gray-300 text-center">
+                                      <div className="grid grid-cols-2 gap-3 py-2 px-1">
+                                        <button
+                                          className="bg-[#172554] hover:bg-blue-700 text-[#f9fafb] hover:text-white font-bold rounded py-2"
+                                          onClick={() =>
+                                            handleEdit(
+                                              detailIndex,
+                                              detail,
+                                              issuedRecord
+                                            )
+                                          }
+                                        >
+                                          Edit
+                                        </button>
+                                        <button
+                                          className="bg-[#450a0a] hover:bg-red-700 text-[#f9fafb] hover:text-white font-bold rounded py-2"
+                                          onClick={() =>
+                                            handleDelete(index, detail._id)
+                                          }
+                                        >
+                                          Delete
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
                       )}
-                    </button>
-                  </div>
-                  {expandedRecords[index] && (
-                    <div className="mt-2">
-                      <table className="w-full border-collapse border border-gray-300">
-                        <thead className="bg-gray-200 text-center">
-                          <tr>
-                            <th className="border border-gray-300 p-2">
-                              Title
-                            </th>
-                            <th className="border border-gray-300 p-2">
-                              Amount
-                            </th>
-                            <th className="border border-gray-300 p-2">
-                              Category
-                            </th>
-                            <th className="border border-gray-300 p-2">
-                              Notes
-                            </th>
-                            <th className="border border-gray-300 p-2">
-                              Action
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="text-center">
-                          {issuedRecord.details.map((detail, detailIndex) => (
-                            <tr key={detailIndex}>
-                              <td className="border border-gray-300 p-2">
-                                {detail.title}
-                              </td>
-                              <td className="border border-gray-300 p-2">
-                                {detail.amount} Tk
-                              </td>
-                              <td className="border border-gray-300 p-2">
-                                {detail.category}
-                              </td>
-                              <td className="border border-gray-300 p-2">
-                                {detail.notes}
-                              </td>
-                              <td className="border border-gray-300 text-center">
-                                <div className="grid grid-cols-2 gap-3 py-2 px-1">
-                                  <button
-                                    className="bg-[#172554] hover:bg-blue-700 text-[#f9fafb] hover:text-white font-bold rounded py-2"
-                                    onClick={() =>
-                                      handleEdit(
-                                        detailIndex,
-                                        detail,
-                                        issuedRecord
-                                      )
-                                    }
-                                  >
-                                    Edit
-                                  </button>
-                                  <button
-                                    className="bg-[#450a0a] hover:bg-red-700 text-[#f9fafb] hover:text-white font-bold rounded py-2"
-                                    onClick={() =>
-                                      handleDelete(index, detail._id)
-                                    }
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </li>
-              ))}
+                    </li>
+                  ))}
+                </div>
+              )}
             </ul>
           </div>
           <div>
@@ -671,6 +816,7 @@ const ShowRecords = () => {
                 <h2 className="text-2xl mb-4 font-light">
                   Category-wise Expenses Chart:
                 </h2>
+                <hr className="h-0.5 bg-slate-300 mr-[36rem]" />
                 <br />
                 <div className="w-[30rem] h-[30rem] ml-[13rem]">
                   <Doughnut data={pieChartData} plugins={[doughnutLabel]} />
@@ -680,12 +826,13 @@ const ShowRecords = () => {
           </div>
           <div>
             {barChartData && (
-              <div className="mt-8">
+              <div className="mt-[5rem]">
                 <h2 className="text-2xl mb-4 font-light">
                   Forecasted Expenses for the Next 7 Days:
                 </h2>
+                <hr className="h-0.5 bg-slate-300 mr-[30rem]" />
                 <br />
-                <div className="w-[30rem] h-[30rem] ml-[13rem]">
+                <div className="w-[42rem] pb-9 ml-[7rem]">
                   <Bar data={barChartData} />
                 </div>
               </div>

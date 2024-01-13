@@ -1,13 +1,12 @@
-import Footer from "./components/compulsory/Footer";
-import Header from "./components/compulsory/Header";
 import Features from "./components/features/Features";
+import { DarkModeProvider } from "./components/features/DarkModeContext";
 
 function App() {
   return (
     <>
-      <Header />
+      <DarkModeProvider>
       <Features />
-      <Footer />
+    </DarkModeProvider>
     </>
   );
 }

@@ -1,5 +1,7 @@
 import axios from "axios";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { DarkModeContext } from "../features/DarkModeContext";
+import ScrollToTopButton from "./ScrollToTopButton";
 import ShowRecords from "./ShowRecords";
 
 const AddRecord = () => {
@@ -8,6 +10,7 @@ const AddRecord = () => {
   const [category, setCategory] = useState("");
   const [issuedOn, setIssuedOn] = useState("");
   const [notes, setNotes] = useState("");
+  const { darkMode } = useContext(DarkModeContext);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -37,26 +40,39 @@ const AddRecord = () => {
 
   return (
     <>
-      <div className="grid grid-cols-6 gap-0 mx-9">
-        <div className="w-[25rem] col-span-2 mt-8">
+      <div
+        className={`grid grid-cols-6 gap-0 ml-9 mr-11 ${
+          darkMode ? "bg-gray-900" : "bg-[#d1d5db]"
+        }`}
+      >
+        <div
+          className={`w-[25rem] col-span-2 mt-8 ${
+            darkMode ? "bg-gray-900" : "bg-[#d1d5db]"
+          }`}
+        >
           <form
             onSubmit={handleSubmit}
-            className="bg-[#fefce8] shadow-lg rounded px-8 pt-6 pb-8 mb-4 mt-8"
+            className={`${
+              darkMode ? "bg-gray-800 text-white" : "bg-[#fefce8] text-black"
+            } shadow-lg rounded px-8 pt-6 pb-8 mb-4 mt-8`}
           >
-            <div className="text-center text-3xl font-thin">
+            <div className="text-center text-3xl font-thin mb-6">
               <h1>Expense Record</h1>
             </div>
-            <br />
 
             <div className="mb-4">
               <label
-                className="block text-gray-700 text-sm font-bold mb-2"
+                className={`block ${
+                  darkMode ? "text-white" : "text-gray-700"
+                } text-sm font-bold mb-2`}
                 htmlFor="title"
               >
                 Title:
               </label>
               <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
+                className={`shadow appearance-none border rounded w-full py-2 px-3 ${
+                  darkMode ? "text-white" : "text-gray-700"
+                } leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800`}
                 id="title"
                 name="title"
                 type="text"
@@ -68,13 +84,17 @@ const AddRecord = () => {
 
             <div className="mb-4">
               <label
-                className="block text-gray-700 text-sm font-bold mb-2"
+                className={`block ${
+                  darkMode ? "text-white" : "text-gray-700"
+                } text-sm font-bold mb-2`}
                 htmlFor="amount"
               >
                 Amount:
               </label>
               <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
+                className={`shadow appearance-none border rounded w-full py-2 px-3 ${
+                  darkMode ? "text-white" : "text-gray-700"
+                } leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800`}
                 id="amount"
                 name="amount"
                 type="number"
@@ -87,13 +107,17 @@ const AddRecord = () => {
 
             <div className="mb-4">
               <label
-                className="block text-gray-700 text-sm font-bold mb-2"
+                className={`block ${
+                  darkMode ? "text-white" : "text-gray-700"
+                } text-sm font-bold mb-2`}
                 htmlFor="category"
               >
                 Category:
               </label>
               <select
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
+                className={`shadow appearance-none border rounded w-full py-2 px-3 ${
+                  darkMode ? "text-white" : "text-gray-700"
+                } leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800`}
                 id="category"
                 name="category"
                 required
@@ -109,13 +133,17 @@ const AddRecord = () => {
 
             <div className="mb-4">
               <label
-                className="block text-gray-700 text-sm font-bold mb-2"
+                className={`block ${
+                  darkMode ? "text-white" : "text-gray-700"
+                } text-sm font-bold mb-2`}
                 htmlFor="issuedOn"
               >
                 Issued On:
               </label>
               <input
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
+                className={`shadow appearance-none border rounded w-full py-2 px-3 ${
+                  darkMode ? "text-white" : "text-gray-700"
+                } leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800`}
                 id="issuedOn"
                 name="issuedOn"
                 type="date"
@@ -126,13 +154,17 @@ const AddRecord = () => {
 
             <div className="mb-6">
               <label
-                className="block text-gray-700 text-sm font-bold mb-2"
+                className={`block ${
+                  darkMode ? "text-white" : "text-gray-700"
+                } text-sm font-bold mb-2`}
                 htmlFor="notes"
               >
                 Notes:
               </label>
               <textarea
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800"
+                className={`shadow appearance-none border rounded w-full py-2 px-3 ${
+                  darkMode ? "text-white" : "text-gray-700"
+                } leading-tight focus:outline-none focus:shadow-outline focus:border-slate-800`}
                 id="notes"
                 name="notes"
                 rows="4"
@@ -143,7 +175,9 @@ const AddRecord = () => {
 
             <div className="flex items-center justify-between">
               <button
-                className="bg-[#334155] hover:bg-[#1f2937] text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline font-bold"
+                className={`${
+                  darkMode ? "bg-[#1a202c]" : "bg-[#334155] hover:bg-[#1f2937]"
+                } text-white py-2 px-4 rounded focus:outline-none focus:shadow-outline font-bold`}
                 type="submit"
               >
                 Add
@@ -154,6 +188,9 @@ const AddRecord = () => {
         <div className="col-span-4">
           <ShowRecords />
         </div>
+      </div>
+      <div>
+        <ScrollToTopButton />
       </div>
     </>
   );

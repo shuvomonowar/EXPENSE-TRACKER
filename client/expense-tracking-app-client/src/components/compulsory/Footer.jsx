@@ -9,7 +9,7 @@ const Footer = () => {
   return (
     <>
       <div className="bg-[#1e293b] font-serif text-white">
-        <div className="flex flex-row gap-2 py-5 pl-[6rem]">
+        <div className="flex flex-row gap-2 py-5 pl-[4rem]">
           <a
             href="#"
             className="bg-amber-50 p-2 rounded-3xl shadow shadow-zinc-200 transform hover:scale-110 transition ease-in-out social-media"
