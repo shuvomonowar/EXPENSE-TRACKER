@@ -4,14 +4,16 @@ const cors = require("cors")
 const ExpenseModel = require("./models/Expense")
 
 const app = express()
-app.use(express.json())
+
 app.use(cors(
     {
         origin: ["https://expense-tracker-eight-lime.vercel.app"],
-        methods: ["POST", "GET", "DELETE", "PUT"],
+        methods: ["POST", "GET"],
         credentials: true
     }
 ))
+
+app.use(express.json())
 
 mongoose.connect("mongodb+srv://shuvomonowar:admin@cluster0.4cjvgtq.mongodb.net/expense-tracker?retryWrites=true&w=majority")
 
