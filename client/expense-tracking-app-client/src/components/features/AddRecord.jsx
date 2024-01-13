@@ -15,13 +15,16 @@ const AddRecord = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     axios
-      .post("http://localhost:3001/record", {
-        title,
-        amount,
-        category,
-        issuedOn,
-        notes,
-      })
+      .post(
+        "https://expense-tracker-api-monowar-hossain-shuvos-projects.vercel.app/record",
+        {
+          title,
+          amount,
+          category,
+          issuedOn,
+          notes,
+        }
+      )
       .then((result) => {
         setTitle("");
         setAmount("");

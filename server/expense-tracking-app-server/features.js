@@ -7,7 +7,7 @@ const app = express()
 app.use(express.json())
 app.use(cors(
     {
-        origin: ["https://deploy-mern-1wha.vercel.app"],
+        origin: ["https://expense-tracker-eight-lime.vercel.app/"],
         methods: ["POST", "GET"],
         credentials: true
     }
