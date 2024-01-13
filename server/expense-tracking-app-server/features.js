@@ -8,7 +8,7 @@ const app = express()
 app.use(cors(
     {
         origin: ["https://expense-tracker-eight-lime.vercel.app"],
-        methods: ["POST", "GET"],
+        methods: ["GET", "POST", "DELETE", "PUT"],
         credentials: true
     }
 ))
