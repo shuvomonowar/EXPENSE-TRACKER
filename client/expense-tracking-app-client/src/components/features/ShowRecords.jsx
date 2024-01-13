@@ -36,7 +36,7 @@ const ShowRecords = () => {
   const handleDelete = async (recordIndex, detailId) => {
     try {
       const response = await axios.delete(
-        `https://expense-tracker-api-monowar-hossain-shuvos-projects.vercel.app/record/${record[recordIndex]._id}/${detailId}`
+        `https://expense-tracker-api-sand.vercel.app/record/${record[recordIndex]._id}/${detailId}`
       );
 
       if (response.data.message === "Expense deleted successfully") {
@@ -202,7 +202,7 @@ const ShowRecords = () => {
 
     try {
       const response = await axios.put(
-        `https://expense-tracker-api-monowar-hossain-shuvos-projects.vercel.app/record`,
+        `https://expense-tracker-api-sand.vercel.app/record`,
         {
           issuedOn: editingDetail.issuedOn,
           details_index: editingDetail.recordIndex,
@@ -247,9 +247,7 @@ const ShowRecords = () => {
 
   const fetchRecord = () => {
     axios
-      .get(
-        "https://expense-tracker-api-monowar-hossain-shuvos-projects.vercel.app/record"
-      )
+      .get("https://expense-tracker-api-sand.vercel.app/record")
       .then((response) => {
         setRecord(response.data);
 
@@ -370,7 +368,7 @@ const ShowRecords = () => {
 
     axios
       .get(
-        `https://expense-tracker-api-monowar-hossain-shuvos-projects.vercel.app/record?startDate=${startDate}&endDate=${endDate}`
+        `https://expense-tracker-api-sand.vercel.app/record?startDate=${startDate}&endDate=${endDate}`
       )
       .then((response) => {
         if (response.data.length === 0) {
