@@ -21,6 +21,8 @@ const ShowRecords = () => {
   const [barChartData, setBarChartData] = useState(null);
   const { darkMode } = useContext(DarkModeContext);
 
+  axios.defaults.withCredentials = true;
+
   const handleToggleExpand = (index) => {
     setExpandedRecords((prevExpanded) => {
       const newExpanded = [...prevExpanded];

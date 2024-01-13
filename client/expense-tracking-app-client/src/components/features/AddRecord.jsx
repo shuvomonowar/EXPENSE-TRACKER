@@ -12,6 +12,8 @@ const AddRecord = () => {
   const [notes, setNotes] = useState("");
   const { darkMode } = useContext(DarkModeContext);
 
+  axios.defaults.withCredentials = true;
+
   const handleSubmit = (e) => {
     e.preventDefault();
     axios
